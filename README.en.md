@@ -2,7 +2,7 @@
 
 [Русский](README.md)
 
-When someone touches you in VRChat — your bHaptics vest vibrates. The app relays touch data from the avatar to TactSuit and adjusts intensity by touch type (impact vs smooth).
+The app relays touch data from the avatar to TactSuit and adjusts intensity by touch type (impact vs smooth). It has the same functionality as the original VRChatOSC from Bhaptics.
 
 **Made by:** [1vs9](https://1vs9.dev/) · [VRChat](https://vrchat.com/home/user/usr_fe820c0f-02c9-48b0-9459-853198136a24) · [GitHub](https://github.com/1vs9-standart)
 
