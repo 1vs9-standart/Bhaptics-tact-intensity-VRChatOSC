@@ -10,7 +10,7 @@ The app relays touch data from the avatar to TactSuit and adjusts intensity by t
 
 ## Requirements
 
-- **Node.js 18+**
+- **Node.js 18+** — [download](https://nodejs.org/en)
 - **bHaptics Player** — [download](https://www.bhaptics.com/software/player/)
 - **TactSuit Air** or **TactSuit Pro**
 - **VRChat** — avatar with touch support (bHapticsOSC, Contact, etc.)
