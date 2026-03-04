@@ -116,6 +116,26 @@ npm start
 | `contactTimeoutMs` | 100–1000 (250) | Если OSC не обновлялся N мс — контакт сбросить. 250 = норм, 400–500 = если «залипает», 150–200 = быстрее отпускание |
 | `extra` | массив строк [] | Доп. имена параметров для обработки |
 
+Пример настройки игнора параметров (чтобы они не трогали жилет, но могли быть на аватаре):
+
+```json
+"contactParams": {
+  "value": "ContactChest",
+  "speed": "ContactSpeed",
+  "zone": "ContactZone",
+  "acceptAll": false,
+  "excludeFaceTracking": true,
+  "contactTimeoutMs": 300,
+  "extra": [],
+  "ignore": [
+    "touch/headpat",
+    "touch/footleft",
+    "touch/footright",
+    "vf108_superneko.realkiss.contact.activator"
+  ]
+}
+```
+
 По умолчанию обрабатываются: `contact`, `vest`, `proximity`, `touch`, `haptic`.
 
 ---
@@ -135,3 +155,5 @@ npm start
 
 - **tact-intensity-OSC** — MIT (см. [LICENSE](LICENSE))
 - **tact-js** (bHaptics) — [bHaptics SDK Agreement](https://bhaptics.gitbook.io/license-sdk/)
+
+

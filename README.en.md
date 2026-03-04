@@ -116,6 +116,26 @@ Launch VRChat and enter the world. When you are touched, the vest will vibrate.
 | `contactTimeoutMs` | 100–1000 (250) | If no OSC for N ms — reset contact. 250 = normal, 400–500 = if it "sticks", 150–200 = faster release |
 | `extra` | string array [] | Extra parameter names to process |
 
+Example of ignoring parameters (so they don’t drive the vest but can stay on the avatar):
+
+```json
+"contactParams": {
+  "value": "ContactChest",
+  "speed": "ContactSpeed",
+  "zone": "ContactZone",
+  "acceptAll": false,
+  "excludeFaceTracking": true,
+  "contactTimeoutMs": 300,
+  "extra": [],
+  "ignore": [
+    "touch/headpat",
+    "touch/footleft",
+    "touch/footright",
+    "vf108_superneko.realkiss.contact.activator"
+  ]
+}
+```
+
 By default: `contact`, `vest`, `proximity`, `touch`, `haptic`.
 
 ---
@@ -133,3 +153,5 @@ By default: `contact`, `vest`, `proximity`, `touch`, `haptic`.
 
 - **tact-intensity-OSC** — MIT (see [LICENSE](LICENSE))
 - **tact-js** (bHaptics) — [bHaptics SDK Agreement](https://bhaptics.gitbook.io/license-sdk/)
+
+

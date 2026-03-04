@@ -38,6 +38,7 @@ const defaultConfig = {
     excludeFaceTracking: true,
     contactTimeoutMs: 250,
     extra: [],
+    ignore: [],
   },
   haptic: {
     eventKey: 'customTouch',

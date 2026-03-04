@@ -6,6 +6,8 @@ export function isFaceTrackingParam(name) {
   const n = name.toLowerCase();
   if (n.startsWith('ft/') || n.startsWith('ft\\')) return true;
   if (/^touch\/ear/i.test(n)) return true;
+  if (/^touch\/cheek/i.test(n)) return true;
+  if (/^touch\/eyepoke/i.test(n)) return true;
   return /eyesquint|cheeksquint|eyeopen|eyewide|brow|viseme|jaw|gaze|mouth|lip/i.test(n);
 }
 
@@ -29,6 +31,9 @@ export function createStateAnalyzer(contactParams) {
   const acceptAll = contactParams?.acceptAll ?? false;
   const excludeFaceTracking = contactParams?.excludeFaceTracking !== false;
   const contactTimeoutMs = contactParams?.contactTimeoutMs ?? 250;
+  const ignoreParams = new Set(
+    (contactParams?.ignore ?? []).filter(Boolean).map((n) => String(n).toLowerCase())
+  );
 
   const contactParamNames = new Set([paramValue, paramSpeed, ...extraParams].filter(Boolean));
 
@@ -58,9 +63,12 @@ export function createStateAnalyzer(contactParams) {
 
   function update(msg) {
     const { paramName, value, timestamp } = msg;
+    const nameLower = typeof paramName === 'string' ? paramName.toLowerCase() : '';
     const dt = state.lastUpdate ? (timestamp - state.lastUpdate) / 1000 : 0.02;
 
     clearStaleContact(timestamp);
+
+    if (nameLower && ignoreParams.has(nameLower)) return getSnapshot();
 
     if (excludeFaceTracking && isFaceTrackingParam(paramName)) return getSnapshot();
 

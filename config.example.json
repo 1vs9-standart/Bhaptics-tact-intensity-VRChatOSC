@@ -37,6 +37,7 @@
     "acceptAll": false,
     "excludeFaceTracking": true,
     "contactTimeoutMs": 250,
-    "extra": []
+    "extra": [],
+    "ignore": ["touch/headpat", "touch/boop", "Touch/FootLeft", "Touch/FootRight", "VF108_superneko.realkiss.contact.activator"]
   }
 }
