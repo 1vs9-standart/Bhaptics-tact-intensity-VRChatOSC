@@ -17,38 +17,34 @@ The app relays touch data from the avatar to TactSuit and adjusts intensity by t
 
 ---
 
-## Quick start
+## Quick Start
 
-### 1. Install
+### 1. Setup
 
-```bash
-npm install
-```
-
-### 2. Configure
-
-1. Copy `config.example.json` → `config.json`
-2. Go to [developer.bhaptics.com](https://developer.bhaptics.com/applications), create an app
+1. Create your `config.json` and copy the settings from `config.example.json`
+2. Go to [developer.bhaptics.com](https://developer.bhaptics.com/applications), create an application
 3. Put `appId` and `apiKey` in `config.json` (section `bhaptics`)
 
-### 3. Run
+### 2. Launch
 
-**Windows:** double-click `start.bat`
+**Windows (recommended):** double-click `start.bat` — it will run `npm install` and start the dashboard. Be sure to install **Node.js 18+**
 
-**Or in terminal:**
+**Manually launching VSCODE (alternative):**
 ```bash
+npm install
+after
 npm start
 ```
 
-### 4. Open dashboard
+### 3. Open the dashboard
 
-Open **http://localhost:1969** in your browser
+Go to **http://localhost:1969** in your browser (opens automatically)
 
-> **Important:** keep the dashboard tab open. Haptics go through the browser → bHaptics Player. Closing the tab stops vibrations.
+> **Important:** The dashboard tab must be open. Haptics are sent through the browser → bHaptics Player. If you close the tab, the vibrations will stop working.
 
-### 5. Start VRChat
+### 4. Launch VRChat
 
-Launch VRChat and join a world. When you get touched — the vest will vibrate.
+Launch VRChat and enter the world. When you are touched, the vest will vibrate.
 
 ---
 
