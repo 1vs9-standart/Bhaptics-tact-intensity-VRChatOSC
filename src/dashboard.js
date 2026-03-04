@@ -30,7 +30,10 @@ export function startDashboard(port = 1969) {
     res.json({ appId: appId || '', apiKey: apiKey || '', remote: remote || '' });
   });
 
-  app.use(express.json());
+  const ALLOW_ZONE_KEYS = new Set(['chest', 'stomach', 'upperBack', 'lowerBack']);
+  const ALLOW_WHILE_KEYS = new Set(['grounded', 'seated', 'inStation', 'afk']);
+
+  app.use(express.json({ limit: '50kb' }));
   app.get('/api/settings', (req, res) => {
     res.json({
       allowZones: dashboardState.allowZones,
@@ -39,8 +42,20 @@ export function startDashboard(port = 1969) {
   });
   app.post('/api/settings', (req, res) => {
     const { allowZones, allowWhile } = req.body || {};
-    if (allowZones) Object.assign(dashboardState.allowZones, allowZones);
-    if (allowWhile) Object.assign(dashboardState.allowWhile, allowWhile);
+    if (allowZones && typeof allowZones === 'object' && !Array.isArray(allowZones)) {
+      for (const k of Object.keys(allowZones)) {
+        if (ALLOW_ZONE_KEYS.has(k) && typeof allowZones[k] === 'boolean') {
+          dashboardState.allowZones[k] = allowZones[k];
+        }
+      }
+    }
+    if (allowWhile && typeof allowWhile === 'object' && !Array.isArray(allowWhile)) {
+      for (const k of Object.keys(allowWhile)) {
+        if (ALLOW_WHILE_KEYS.has(k) && typeof allowWhile[k] === 'boolean') {
+          dashboardState.allowWhile[k] = allowWhile[k];
+        }
+      }
+    }
     res.json({ ok: true, allowZones: dashboardState.allowZones, allowWhile: dashboardState.allowWhile });
   });
 

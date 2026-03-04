@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>tact-intensity-OSC v1.0</title>
+  <title>VRChatOSC-bhaptics-js v1.0</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
@@ -75,13 +75,14 @@
     .lang-toggle button { padding: 0.25rem 0.5rem; font-size: 0.75rem; background: var(--border); border: none; border-radius: 6px; color: var(--muted); cursor: pointer; }
     .lang-toggle button:hover { color: var(--text); }
     .lang-toggle button.active { background: var(--accent); color: var(--bg); }
+    .zone-touched { background: rgba(88, 166, 255, 0.15); border-radius: 8px; box-shadow: 0 0 0 1px var(--accent); }
   </style>
   <script type="module" src="/haptics-client.js"></script>
 </head>
 <body>
   <div class="container">
     <h1 style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
-      <span>tact-intensity-OSC <span style="font-size:0.7em;color:var(--muted);font-weight:400">v1.0</span></span>
+      <span>VRChatOSC-bhaptics-js <span style="font-size:0.7em;color:var(--muted);font-weight:400">v1.0</span></span>
       <span class="lang-toggle">
         <button id="lang-ru" data-lang="ru">RU</button>
         <button id="lang-ua" data-lang="ua">UA</button>
@@ -409,7 +410,7 @@
       const it = items.length ? items : (containerId === 'zones-checkboxes' ? ZONES : WHILE);
       if (!el.dataset.inited) {
         el.dataset.inited = '1';
-        el.innerHTML = it.map(({ key, label }) => `<label><input type="checkbox" data-key="${key}" ${stateObj[key] ? 'checked' : ''}> ${label}</label>`).join('');
+        el.innerHTML = it.map(({ key, label }) => `<label class="zone-label" data-zone-key="${key}"><input type="checkbox" data-key="${key}" ${stateObj[key] ? 'checked' : ''}> ${label}</label>`).join('');
         el.querySelectorAll('input').forEach((cb) => {
           cb.addEventListener('change', () => {
             const obj = {};
@@ -530,7 +531,24 @@
       const allowWhile = s.allowWhile || { grounded: true, seated: true, inStation: true, afk: false };
       renderCheckboxes('zones-checkboxes', ZONES, zones, 'allowZones');
       renderCheckboxes('while-checkboxes', WHILE, allowWhile, 'allowWhile');
+      function zoneFromParam(p) {
+        const lp = (p || '').toLowerCase();
+        if (/chest|front|vest_front/.test(lp)) return 'chest';
+        if (/stomach|belly/.test(lp)) return 'stomach';
+        if (/upperback|upper/.test(lp)) return 'upperBack';
+        if (/lowerback|lower/.test(lp)) return 'lowerBack';
+        if (/back|vest_back/.test(lp)) return 'upperBack';
+        return 'chest';
+      }
       const c = s.contact || {};
+      const activeZones = new Set();
+      const ap = c.activeParams || [];
+      if (ap.length) ap.forEach(({ param }) => activeZones.add(zoneFromParam(param)));
+      else if (c.lastParam) activeZones.add(zoneFromParam(c.lastParam));
+      document.querySelectorAll('#zones-checkboxes .zone-label').forEach((label) => {
+        const key = label.dataset.zoneKey;
+        label.classList.toggle('zone-touched', !!key && activeZones.has(key));
+      });
       const v = (c.value ?? 0) * 100;
       const velVal = Math.max(c.velocity ?? 0, c.peakVelocity ?? 0);
       const vel = Math.min(100, velVal * 50);

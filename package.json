@@ -1,5 +1,5 @@
 {
-  "name": "tact-intensity-osc",
+  "name": "vrchatosc-bhaptics-js",
   "version": "1.0.0",
   "description": "VRChat OSC → bHaptics middleware with dynamic intensity adaptation",
   "author": "1vs9 (https://1vs9.dev/)",

@@ -1,6 +1,6 @@
 @echo off
-title tact-intensity-OSC
-echo tact-intensity-OSC - VRChat OSC to bHaptics
+title VRChatOSC-bhaptics-js
+echo VRChatOSC-bhaptics-js - VRChat OSC to bHaptics
 echo.
 echo Installing dependencies...
 call npm install

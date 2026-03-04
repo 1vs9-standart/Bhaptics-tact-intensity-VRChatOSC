@@ -1,5 +1,5 @@
 /**
- * tact-intensity-OSC — VRChat OSC → bHaptics middleware
+ * VRChatOSC-bhaptics-js — VRChat OSC → bHaptics middleware
  */
 import { config } from './config.js';
 import { checkPort, freePorts } from './port-check.js';
@@ -11,7 +11,7 @@ import { startDashboard } from './dashboard.js';
 import { combineMotorValues } from './motor-utils.js';
 
 async function main() {
-  console.log('[tact-intensity-OSC] Запуск...');
+  console.log('[VRChatOSC-bhaptics-js] Запуск...');
 
   const oscPort = config.osc.port;
   const uiPort = config.ui?.port ?? 1969;
@@ -28,18 +28,18 @@ async function main() {
   ]);
 
   if (!port9001.free) {
-    console.error(`[tact-intensity-OSC] Порт 9001 (OSC) занят`);
+    console.error(`[VRChatOSC-bhaptics-js] Порт 9001 (OSC) занят`);
     process.exit(1);
   }
   if (!portUi.free) {
-    console.error(`[tact-intensity-OSC] Порт ${uiPort} (Dashboard) занят`);
+    console.error(`[VRChatOSC-bhaptics-js] Порт ${uiPort} (Dashboard) занят`);
     process.exit(1);
   }
 
   if (!port9000.free) {
-    console.log('[tact-intensity-OSC] VRChat подключён (порт 9000 занят)');
+    console.log('[VRChatOSC-bhaptics-js] VRChat подключён (порт 9000 занят)');
   }
-  console.log(`[tact-intensity-OSC] OSC :9001 | Dashboard :${uiPort}`);
+  console.log(`[VRChatOSC-bhaptics-js] OSC :9001 | Dashboard :${uiPort}`);
 
   const stateAnalyzer = createStateAnalyzer(config.contactParams);
   const intensityEngine = createIntensityEngine(config);
@@ -96,8 +96,9 @@ async function main() {
       (allowWhile.afk && afk);
     if (stats.messagesReceived < 5) return true;
     if (!stateOk) return false;
-    const toCheck = activeParams?.length ? activeParams.map((a) => a.param) : [dashboardState.contact?.lastParam];
-    return toCheck.some((param) => allowZones[zoneFromParam(param)] !== false);
+    const toCheck = activeParams?.length ? activeParams.map((a) => a.param) : [dashboardState.contact?.lastParam].filter(Boolean);
+    if (toCheck.length === 0) return false;
+    return toCheck.some((param) => allowZones[zoneFromParam(param)] === true);
   }
 
   const { stop, hapticsBridge } = startDashboard(config.ui?.port ?? 1969);
@@ -188,12 +189,12 @@ async function main() {
   dashboardState.osc.port = config.osc.port;
 
   const shutdown = () => {
-    console.log('\n[tact-intensity-OSC] Остановка...');
+    console.log('\n[VRChatOSC-bhaptics-js] Остановка...');
     let done = false;
     const forceExit = () => {
       if (!done) {
         done = true;
-        console.log('[tact-intensity-OSC] Принудительный выход');
+        console.log('[VRChatOSC-bhaptics-js] Принудительный выход');
         process.exit(0);
       }
     };

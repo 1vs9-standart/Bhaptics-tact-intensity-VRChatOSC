@@ -1,124 +1,123 @@
-# tact-intensity-OSC (v1.0)
+# VRChatOSC-bhaptics-js (v1.0)
 
-[English version](README.en.md)
+[Русский](README.ru.md)
 
-Приложение передаёт касания с аватара на TactSuit и подстраивает силу под тип касания (удар или плавное). Имеет тот же функционал, что и оригинальный VRChatOSC от Bhaptics
+The app relays touch data from the avatar to TactSuit and adjusts intensity by touch type (impact vs smooth). It has the same functionality as the original VRChatOSC from Bhaptics.
 
-**Сделано:** [1vs9](https://1vs9.dev/) · [VRChat](https://vrchat.com/home/user/usr_fe820c0f-02c9-48b0-9459-853198136a24) · [GitHub](https://github.com/1vs9-standart)
-
----
-
-## Что нужно
-
-- **Node.js 18+** — [скачать](https://nodejs.org/en)
-- **bHaptics Player** — [скачать](https://www.bhaptics.com/software/player/)
-- **TactSuit Air** или **TactSuit Pro**
-- **VRChat** — аватар с поддержкой касаний (bHapticsOSC, Contact и т.п.)
+**Made by:** [1vs9](https://1vs9.dev/) · [VRChat](https://vrchat.com/home/user/usr_fe820c0f-02c9-48b0-9459-853198136a24) · [GitHub](https://github.com/1vs9-standart)
 
 ---
 
-## Быстрый старт
+## Requirements
 
-### 1. Настройка
+- **Node.js 18+** — [download](https://nodejs.org/en)
+- **bHaptics Player** — [download](https://www.bhaptics.com/software/player/)
+- **TactSuit Air** or **TactSuit Pro**
+- **VRChat** — avatar with touch support (bHapticsOSC, Contact, etc.)
 
-1. Создай свой `config.json` и скопируй настройки с `config.example.json`
-2. Зайди на [developer.bhaptics.com](https://developer.bhaptics.com/applications), создай приложение
-3. Вставь `appId` и `apiKey` в `config.json` (раздел `bhaptics`)
+---
 
-### 2. Запуск
+## Quick Start
 
-**Windows (рекомендуется):** дважды нажми на `start.bat` — он сам выполнит `npm install` и запустит дашборд. Обязательно установите **Node.js 18+** 
+### 1. Setup
 
-**Ручной запуск VSCODE (альтернатива):**
+1. Create your `config.json` and copy the settings from `config.example.json`
+2. Go to [developer.bhaptics.com](https://developer.bhaptics.com/applications), create an application
+3. Put `appId` and `apiKey` in `config.json` (section `bhaptics`)
+
+### 2. Launch
+
+**Windows (recommended):** double-click `start.bat` — it will run `npm install` and start the dashboard. Be sure to install **Node.js 18+**
+
+**Manually launching VSCODE (alternative):**
 ```bash
 npm install
-после 
+after
 npm start
 ```
 
-### 3. Открой дашборд
+### 3. Open the dashboard
 
-Перейди в браузере на **http://localhost:1969** (открывается автоматически)
+Go to **http://localhost:1969** in your browser (opens automatically)
 
-> **Важно:** вкладка с дашбордом должна быть открыта. Хаптика идёт через браузер → bHaptics Player. Закроешь вкладку — вибрации перестанут работать.
+> **Important:** The dashboard tab must be open. Haptics are sent through the browser → bHaptics Player. If you close the tab, the vibrations will stop working.
 
-### 4. Запусти VRChat
+### 4. Launch VRChat
 
-Запусти VRChat, зайди в мир. Когда тебя касаются — жилет будет вибрировать.
-
----
-
-## Дашборд
-
-- **Зоны** — какие зоны включены (грудь, живот, спина)
-- **Когда включено** — при каких условиях работают хаптики (на земле, сидя и т.д.)
-- **Тест хаптики** — проверка, что жилет отвечает
-- **RU / UA / EN** — переключение языка
+Launch VRChat and enter the world. When you are touched, the vest will vibrate.
 
 ---
 
-## Параметры config.json
+## Dashboard
 
-### ui — интерфейс
+- **Zones** — which zones are enabled (chest, stomach, back)
+- **When enabled** — conditions for haptics (grounded, seated, etc.)
+- **Test haptic** — verify the vest responds
+- **RU / UA / EN** — language switch
 
-| Параметр | Значения | Описание |
-|----------|----------|----------|
-| `port` | число (1969) | Порт веб-дашборда. Открываешь http://localhost:PORT |
+---
 
-### osc — приём данных от VRChat
+## config.json parameters
 
-| Параметр | Значения | Описание |
-|----------|----------|----------|
-| `port` | число (9001) | Порт OSC. **Должен совпадать** с настройками VRChat (OSC → порт вывода) |
-| `host` | строка ("0.0.0.0") | Адрес прослушивания. 0.0.0.0 = все интерфейсы |
-| `autoFreePorts` | true / false | Освобождать порты при запуске (убивать процессы на 9001, 1969) |
+### ui — interface
 
-### bhaptics — подключение к bHaptics Player
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `port` | number (1969) | Dashboard port. Open http://localhost:PORT |
 
-| Параметр | Значения | Описание |
-|----------|----------|----------|
-| `appId` | строка | ID приложения с [developer.bhaptics.com](https://developer.bhaptics.com/applications) |
-| `apiKey` | строка | API-ключ приложения |
-| `remote` | строка ("127.0.0.1:15881") | Адрес bHaptics Player. Локально — 127.0.0.1 |
+### osc — receiving data from VRChat
 
-### intensity — сила и тайминги вибрации
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `port` | number (9001) | OSC port. **Must match** VRChat settings (OSC → output port) |
+| `host` | string ("127.0.0.1") | Listen address. 127.0.0.1 = localhost only (safer) |
+| `autoFreePorts` | true / false | Free ports on startup (kill processes on 9001, 1969) |
 
-| Параметр | Значения | Описание |
-|----------|----------|----------|
-| `impactThreshold` | 0.1–1.0 (0.4) | Порог: выше = «удар», ниже = «плавное касание». VRChat: 0.4 |
-| `velocityMin` | 0.1–1.0 (0.2) | Мин. скорость для расчёта силы удара |
-| `velocityMax` | 1.0–5.0 (3.0 или 5.0 рекомендовано) | Макс. скорость. OSC иногда шлёт 1000+, ставь 3 |
-| `durationMin` | 0–2 (0.1) | Мин. сила при долгом касании (объятия) |
-| `durationMax` | 0–2 (1.25) | Макс. сила при долгом касании. Не больше maxIntensity |
-| `longContactMs` | 500–5000 (1500 или 2000 рекомендовано) | За сколько мс плавное касание выходит на максимум |
-| `emaAlpha` | 0.1–0.9 (0.4) | Сглаживание. Больше = быстрее реакция |
-| `cooldownMs` | 20–100 (30) | Пауза (мс) между хаптиками при ударах |
-| `sustainCooldownMs` | 100–500 (100 или 150 рекомендовано) | Пауза при плавном касании |
-| `minIntensity` | 0–2 (0.1) | Мин. сила (шкала bHaptics 0–2) |
-| `maxIntensity` | 0–2 (1.8) | Макс. сила. VRChat: 1.8 чтобы не перегружать |
+### bhaptics — connection to bHaptics Player
 
-### haptic — как вибрирует жилет
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `appId` | string | App ID from [developer.bhaptics.com](https://developer.bhaptics.com/applications) |
+| `apiKey` | string | App API key |
+| `remote` | string ("127.0.0.1:15881") | bHaptics Player address. Local = 127.0.0.1 |
 
-| Параметр | Значения | Описание |
-|----------|----------|----------|
-| `useDotMode` | true / false | true = точный контроль моторов (рекомендуется) |
-| `motorClusterSize` | 0, 1, 2 | 0 = один мотор, 1 = центр + 4 соседа, 2 = блок 3×3 |
+### intensity — vibration strength and timing
 
-### contactParams — какие OSC-параметры слушать
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `impactThreshold` | 0.1–1.0 (0.4) | Threshold: higher = "impact", lower = "smooth touch". VRChat: 0.4 |
+| `velocityMin` | 0.1–1.0 (0.2) | Min velocity for impact strength |
+| `velocityMax` | 1.0–5.0 (3.0) | Max velocity. OSC can send 1000+, use 3 |
+| `durationMin` | 0–2 (0.2) | Min strength for long touch (hugs) |
+| `durationMax` | 0–2 (1.3) | Max strength for long touch. Not above maxIntensity |
+| `longContactMs` | 500–5000 (1500) | How many ms until smooth touch reaches max |
+| `emaAlpha` | 0.1–0.9 (0.4) | Smoothing. Higher = faster response |
+| `cooldownMs` | 20–100 (40) | Pause (ms) between haptics on impacts |
+| `sustainCooldownMs` | 100–500 (150) | Pause on smooth touch |
+| `minIntensity` | 0–2 (0.15) | Min strength (bHaptics scale 0–2) |
+| `maxIntensity` | 0–2 (2.0) | Max strength. VRChat: 1.8 to avoid overload |
 
-| Параметр | Значения | Описание |
-|----------|----------|----------|
-| `value` | строка ("ContactChest") | Основной параметр контакта |
-| `speed` | строка ("ContactSpeed") | Параметр скорости |
-| `zone` | строка ("ContactZone") | Параметр зоны |
-| `acceptAll` | true / false | true = обрабатывать все OSC (кроме face tracking) |
-| `excludeFaceTracking` | true / false | Исключать параметры лица (FT/, viseme и т.д.) |
-| `contactTimeoutMs` | 100–1000 (250) | Если OSC не обновлялся N мс — контакт сбросить. 250 = норм, 400–500 = если «залипает», 150–200 = быстрее отпускание |
-| `extra` | массив строк [] | Доп. имена параметров для обработки |
-| `ignore` | массив строк [] | Игнорирование параметров аватара |
+### haptic — how the vest vibrates
 
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `useDotMode` | true / false | true = precise motor control (recommended) |
+| `motorClusterSize` | 0, 1, 2 | 0 = single motor, 1 = center + 4 neighbors, 2 = 3×3 block |
 
-Пример настройки игнора параметров (чтобы они не трогали жилет, но могли быть на аватаре):
+### contactParams — which OSC parameters to listen to
+
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `value` | string ("ContactChest") | Main contact parameter |
+| `speed` | string ("ContactSpeed") | Speed parameter |
+| `zone` | string ("ContactZone") | Zone parameter |
+| `acceptAll` | true / false | true = process all OSC (except face tracking) |
+| `excludeFaceTracking` | true / false | Exclude face params (FT/, viseme, etc.) |
+| `contactTimeoutMs` | 100–1000 (250) | If no OSC for N ms — reset contact. 250 = normal, 400–500 = if it "sticks", 150–200 = faster release |
+| `extra` | string array [] | Extra parameter names to process |
+| `ignore` | string array [] | Ignoring avatar parameters |
+
+Example of ignoring parameters (so they don’t drive the vest but can stay on the avatar):
 
 ```json
 "contactParams": {
@@ -132,30 +131,26 @@ npm start
     "vf108_superneko.realkiss.contact.activator"
   ]
 }
-
 ```
 
-По умолчанию, кроме явно указанных `value` / `speed` / `zone` / `extra`, анализатор также считает «контактными» любые OSC-параметры, в имени которых встречаются подстроки: `contact`, `vest`, `proximity`, `touch`, `haptic` или `chest` (без учёта регистра).
-Например, параметры `Touch/Boop`, `MyAvatar_Contact_Chest` или `Proximity_LeftHand` автоматически попадут в расчёт контакта, даже если их нет в `extra`.
-Если такой параметр не должен трогать жилет, его можно добавить в `contactParams.ignore`.
+By default, in addition to the explicitly specified `value` / `speed` / `zone` / `extra`, the analyzer also considers any OSC parameters whose names contain the substrings `contact`, `vest`, `proximity`, `touch`, `haptic`, or `chest` (case-insensitive) to be "contact parameters".
+For example, the parameters `Touch/Boop`, `MyAvatar_Contact_Chest`, or `Proximity_LeftHand` will automatically be included in the contact calculation, even if they are not in `extra`.
+If such a parameter should not affect the vest, it can be added to `contactParams.ignore`.
 
 ---
 
+### contactTimeoutMs — tips
 
-### contactTimeoutMs — подсказки
-
-**contactTimeoutMs** — через сколько мс без новых OSC-сообщений контакт считается завершённым:
-- **150–200** — быстрее чувствуешь «отпустили»
-- **250** — обычное значение
-- **400–500** — если вибрация «залипает» после того как убрали руки
-
----
+**contactTimeoutMs** — how many ms without new OSC messages before contact is considered ended:
+- **150–200** — feel "released" sooner
+- **250** — typical value
+- **400–500** — if vibration "sticks" after hands are removed
 
 ---
 
-## License / Лицензия
+## License
 
-- **tact-intensity-OSC** — MIT (см. [LICENSE](LICENSE))
+- **VRChatOSC-bhaptics-js** — MIT (see [LICENSE](LICENSE))
 - **tact-js** (bHaptics) — [bHaptics SDK Agreement](https://bhaptics.gitbook.io/license-sdk/)
 
 
