@@ -1,0 +1,42 @@
+{
+  "_comment": "Copy to config.json and set bhaptics.appId, apiKey.",
+  "ui": {
+    "port": 1969
+  },
+  "osc": {
+    "port": 9001,
+    "host": "0.0.0.0",
+    "autoFreePorts": true
+  },
+  "bhaptics": {
+    "appId": "{your appId}",
+    "apiKey": "{your apiKey}",
+    "remote": "127.0.0.1:15881"
+  },
+  "intensity": {
+    "impactThreshold": 0.5,
+    "velocityMin": 0.2,
+    "velocityMax": 3.5,
+    "durationMin": 0.2,
+    "durationMax": 1.3,
+    "longContactMs": 1500,
+    "emaAlpha": 0.4,
+    "cooldownMs": 40,
+    "sustainCooldownMs": 150,
+    "minIntensity": 0.15,
+    "maxIntensity": 2.0
+  },
+  "haptic": {
+    "useDotMode": true,
+    "motorClusterSize": 0
+  },
+  "contactParams": {
+    "value": "ContactChest",
+    "speed": "ContactSpeed",
+    "zone": "ContactZone",
+    "acceptAll": false,
+    "excludeFaceTracking": true,
+    "contactTimeoutMs": 250,
+    "extra": []
+  }
+}

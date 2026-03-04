@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tact-intensity-OSC v1.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #161a22;
+      --border: #2a3142;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --warning: #d29922;
+      --danger: #f85149;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 1.25rem; }
+    .container { max-width: 560px; margin: 0 auto; }
+    h1 { font-size: 1.35rem; font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    h1::before { content: ''; width: 6px; height: 20px; background: linear-gradient(180deg, var(--accent), #a371f7); border-radius: 3px; }
+    .hero { background: linear-gradient(135deg, var(--surface) 0%, #1a1f2e 100%); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; text-align: center; }
+    .hero.ready { border-color: var(--success); box-shadow: 0 0 24px var(--success)22; }
+    .hero.waiting { border-color: var(--warning); }
+    .hero.error { border-color: var(--danger); }
+    .hero-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .hero.ready .hero-title { color: var(--success); }
+    .hero-sub { font-size: 0.8rem; color: var(--muted); }
+    .hero-steps { text-align: left; margin-top: 1rem; font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+    .hero-steps li { margin-left: 1.2rem; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1.2rem; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: var(--bg); background: linear-gradient(135deg, var(--accent), #a371f7); border: none; border-radius: 10px; cursor: pointer; margin-top: 1rem; transition: transform 0.1s, opacity 0.2s; }
+    .btn:hover { opacity: 0.95; transform: scale(1.02); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+    .card h2 { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.75rem; }
+    .card-compact { padding: 0.9rem 1.25rem; }
+    .status-row { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .status-row:last-child { border-bottom: none; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; margin-right: 0.6rem; }
+    .status-dot.ok { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .status-dot.err { background: var(--danger); }
+    .status-dot.warn { background: var(--warning); }
+    .status-label { flex: 1; }
+    .status-value { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+    .checkbox-row { display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem; }
+    .checkbox-row label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; cursor: pointer; }
+    .checkbox-row input { accent-color: var(--accent); }
+    .section-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.6rem 0; font-family: inherit; font-size: 0.85rem; font-weight: 600; color: var(--text); background: none; border: none; cursor: pointer; text-align: left; }
+    .section-toggle:hover { color: var(--accent); }
+    .section-toggle::after { content: '▼'; font-size: 0.65rem; color: var(--muted); transition: transform 0.2s; }
+    .section-toggle.collapsed::after { transform: rotate(-90deg); }
+    .section-body { overflow: hidden; transition: max-height 0.25s ease; }
+    .section-body.collapsed { max-height: 0 !important; overflow: hidden; }
+    .meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .meter { text-align: center; }
+    .meter-label { font-size: 0.65rem; color: var(--muted); margin-bottom: 0.35rem; }
+    .meter-value { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 600; }
+    .meter-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 0.35rem; overflow: hidden; }
+    .meter-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a371f7); border-radius: 2px; transition: width 0.15s; }
+    .stats { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--muted); }
+    .stat strong { color: var(--text); }
+    .live { color: var(--success); font-size: 0.65rem; }
+    .vest-debug { display: flex; gap: 1.5rem; margin: 0.5rem 0; }
+    .vest-view { text-align: center; }
+    .vest-label { font-size: 0.65rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .vest-debug circle { transition: fill 0.15s, filter 0.15s; }
+    .vest-debug circle.active { fill: var(--accent); filter: drop-shadow(0 0 4px var(--accent)); }
+    .vest-debug circle.fade { fill: var(--accent); opacity: 0.4; }
+    .lang-toggle { display: flex; gap: 0.25rem; margin-left: auto; }
+    .lang-toggle button { padding: 0.25rem 0.5rem; font-size: 0.75rem; background: var(--border); border: none; border-radius: 6px; color: var(--muted); cursor: pointer; }
+    .lang-toggle button:hover { color: var(--text); }
+    .lang-toggle button.active { background: var(--accent); color: var(--bg); }
+  </style>
+  <script type="module" src="/haptics-client.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1 style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+      <span>tact-intensity-OSC <span style="font-size:0.7em;color:var(--muted);font-weight:400">v1.0</span></span>
+      <span class="lang-toggle">
+        <button id="lang-ru" data-lang="ru">RU</button>
+        <button id="lang-ua" data-lang="ua">UA</button>
+        <button id="lang-en" data-lang="en">EN</button>
+      </span>
+    </h1>
+
+    <div class="hero" id="hero">
+      <div class="hero-title" id="hero-title" data-i18n="heroChecking">—</div>
+      <div class="hero-sub" id="hero-sub">—</div>
+      <button class="btn" id="btn-test" disabled data-i18n="btnTestHaptic">—</button>
+      <ul class="hero-steps" id="hero-steps" style="display:none"></ul>
+    </div>
+
+    <div class="card card-compact">
+      <h2 data-i18n="zones">—</h2>
+      <div class="checkbox-row" id="zones-checkboxes"></div>
+    </div>
+
+    <div class="card card-compact">
+      <h2 data-i18n="whenEnabled">—</h2>
+      <div class="checkbox-row" id="while-checkboxes"></div>
+    </div>
+
+    <div class="card card-compact">
+      <h2 data-i18n="device">—</h2>
+      <div class="status-row">
+        <span class="status-label" data-i18n="deviceName">—</span>
+        <span class="status-value" id="device-info-label">—</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label" data-i18n="battery">—</span>
+        <span class="status-value" id="device-battery">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="contacts">—</h2>
+      <div class="meters">
+        <div class="meter">
+          <div class="meter-label">Value</div>
+          <div class="meter-value" id="contact-value">0</div>
+          <div class="meter-bar"><div class="meter-fill" id="contact-value-bar" style="width:0%"></div></div>
+        </div>
+        <div class="meter">
+          <div class="meter-label">Velocity</div>
+          <div class="meter-value" id="contact-velocity">0</div>
+          <div class="meter-bar"><div class="meter-fill" id="contact-velocity-bar" style="width:0%"></div></div>
+        </div>
+        <div class="meter">
+          <div class="meter-label">Intensity</div>
+          <div class="meter-value" id="intensity-value">0</div>
+          <div class="meter-bar"><div class="meter-fill" id="intensity-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="status-row" style="margin-top:0.5rem">
+        <span class="status-label" data-i18n="eventType">—</span>
+        <span class="status-value" id="event-type">idle</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="section-toggle collapsed" id="toggle-advanced" data-collapsed="true" data-i18n="advancedData">—</button>
+      <div class="section-body collapsed" id="advanced-body" style="max-height:800px">
+        <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border)">
+          <div class="status-row">
+            <span class="status-dot" id="osc-dot"></span>
+            <span class="status-label">OSC</span>
+            <span class="status-value" id="osc-value">—</span>
+          </div>
+          <div class="status-row">
+            <span class="status-dot" id="bhaptics-dot"></span>
+            <span class="status-label">bHaptics</span>
+            <span class="status-value" id="bhaptics-value">—</span>
+          </div>
+          <div class="status-row">
+            <span class="status-dot" id="vrchat-dot"></span>
+            <span class="status-label">VRChat</span>
+            <span class="status-value" id="vrchat-value">—</span>
+          </div>
+        </div>
+        <h2 style="margin-top:1rem" data-i18n="avatar">—</h2>
+        <div class="status-row">
+          <span class="status-label" data-i18n="oscType">—</span>
+          <span class="status-value" id="avatar-osc-type">—</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label" data-i18n="id">ID</span>
+          <span class="status-value" id="avatar-id" style="font-size:0.7rem;word-break:break-all">—</span>
+        </div>
+        <h2 style="margin-top:1rem" data-i18n="vestDebug">Vest Debug</h2>
+        <div class="vest-debug">
+          <div class="vest-view">
+            <div class="vest-label" data-i18n="vestFront">Front</div>
+            <svg id="vest-front" viewBox="0 0 100 120" width="100" height="120"></svg>
+          </div>
+          <div class="vest-view">
+            <div class="vest-label" data-i18n="vestBack">Back</div>
+            <svg id="vest-back" viewBox="0 0 100 120" width="100" height="120"></svg>
+          </div>
+        </div>
+        <h2 style="margin-top:1rem" data-i18n="touchLog">—</h2>
+        <div id="touch-log" style="font-family:JetBrains Mono;font-size:0.7rem;max-height:200px;overflow-y:auto"></div>
+        <div class="stats" style="margin-top:0.75rem">
+          <span class="stat"><span data-i18n="statOscMsgs">—</span> <strong id="stat-osc">0</strong></span>
+          <span class="stat"><span data-i18n="statHapticsSent">—</span> <strong id="stat-haptics">0</strong></span>
+          <span class="stat live">● live</span>
+        </div>
+        <h2 style="margin-top:1rem">OSC Debug</h2>
+        <div id="osc-debug" style="font-family:JetBrains Mono;font-size:0.65rem;max-height:80px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <footer style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);text-align:center;font-size:0.75rem;color:var(--muted)">
+      <span data-i18n="madeBy">Сделано</span>: <a href="https://1vs9.dev/" target="_blank" rel="noopener" style="color:var(--accent)">1vs9</a> · <a href="https://vrchat.com/home/user/usr_fe820c0f-02c9-48b0-9459-853198136a24" target="_blank" rel="noopener" style="color:var(--accent)">VRChat</a> · <a href="https://github.com/1vs9-standart" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>
+    </footer>
+  </div>
+
+  <script>
+    const LANG = {
+      ru: {
+        heroChecking: 'Проверка...',
+        heroError: 'Dashboard не запущен',
+        heroErrorSteps: ['Откройте терминал в папке проекта', 'Выполните: npm start', 'Обновите эту страницу'],
+        heroWaiting: 'Ожидание bHaptics Player',
+        heroWaitingSteps: ['Запустите bHaptics Player', 'Подключите TactSuit', 'Обновите страницу'],
+        heroReady: 'Готово к работе',
+        heroReadySub: 'Запустите VRChat — хаптики заработают при касаниях',
+        heroOk: 'Всё работает',
+        btnTestHaptic: 'Тест хаптики',
+        btnTestOk: '✓ Сработало',
+        zones: 'Зоны',
+        whenEnabled: 'Когда включено',
+        advancedData: 'Расширенные данные',
+        avatar: 'Аватар',
+        oscType: 'Тип OSC',
+        device: 'Устройство',
+        deviceName: 'Название',
+        battery: 'Батарея',
+        contacts: 'Контакты',
+        eventType: 'Тип',
+        touchLog: 'Где коснулись',
+        noData: 'Пока нет',
+        zoneChest: 'Грудь',
+        zoneStomach: 'Живот',
+        zoneUpperBack: 'Верх спины',
+        zoneLowerBack: 'Низ спины',
+        vestFront: 'Перед',
+        vestBack: 'Спина',
+        vestDebug: 'Отладка жилета',
+        id: 'ID',
+        whileGrounded: 'На земле',
+        whileSeated: 'Сидя',
+        whileInStation: 'В станции',
+        whileAfk: 'AFK',
+        madeBy: 'Сделано',
+        statOscMsgs: 'OSC сообщ.:',
+        statHapticsSent: 'Хаптик отправлено:',
+        motorsLabel: 'моторов',
+        notConnected: 'Не подключено',
+        error: 'Ошибка',
+        networkError: 'Ошибка сети',
+      },
+      ua: {
+        heroChecking: 'Перевірка...',
+        heroError: 'Dashboard не запущено',
+        heroErrorSteps: ['Відкрийте термінал у папці проєкту', 'Виконайте: npm start', 'Оновіть цю сторінку'],
+        heroWaiting: 'Очікування bHaptics Player',
+        heroWaitingSteps: ['Запустіть bHaptics Player', 'Підключіть TactSuit', 'Оновіть сторінку'],
+        heroReady: 'Готово до роботи',
+        heroReadySub: 'Запустіть VRChat — хаптика працюватиме при дотиках',
+        heroOk: 'Все працює',
+        btnTestHaptic: 'Тест хаптики',
+        btnTestOk: '✓ Спрацювало',
+        zones: 'Зони',
+        whenEnabled: 'Коли увімкнено',
+        advancedData: 'Розширені дані',
+        avatar: 'Аватар',
+        oscType: 'Тип OSC',
+        device: 'Пристрій',
+        deviceName: 'Назва',
+        battery: 'Батарея',
+        contacts: 'Контакти',
+        eventType: 'Тип',
+        touchLog: 'Де торкнулись',
+        noData: 'Поки немає',
+        zoneChest: 'Груди',
+        zoneStomach: 'Живіт',
+        zoneUpperBack: 'Верх спини',
+        zoneLowerBack: 'Низ спини',
+        vestFront: 'Перед',
+        vestBack: 'Спина',
+        vestDebug: 'Відладка жилета',
+        id: 'ID',
+        whileGrounded: 'На землі',
+        whileSeated: 'Сидячи',
+        whileInStation: 'У станції',
+        whileAfk: 'AFK',
+        madeBy: 'Зроблено',
+        statOscMsgs: 'OSC повідом.:',
+        statHapticsSent: 'Хаптик відправлено:',
+        motorsLabel: 'моторів',
+        notConnected: 'Не підключено',
+        error: 'Помилка',
+        networkError: 'Помилка мережі',
+      },
+      en: {
+        heroChecking: 'Checking...',
+        heroError: 'Dashboard not running',
+        heroErrorSteps: ['Open terminal in project folder', 'Run: npm start', 'Refresh this page'],
+        heroWaiting: 'Waiting for bHaptics Player',
+        heroWaitingSteps: ['Start bHaptics Player', 'Connect TactSuit', 'Refresh page'],
+        heroReady: 'Ready',
+        heroReadySub: 'Start VRChat — haptics will work on touch',
+        heroOk: 'All systems go',
+        btnTestHaptic: 'Test haptic',
+        btnTestOk: '✓ Worked',
+        zones: 'Zones',
+        whenEnabled: 'When enabled',
+        advancedData: 'Advanced data',
+        avatar: 'Avatar',
+        oscType: 'OSC type',
+        device: 'Device',
+        deviceName: 'Name',
+        battery: 'Battery',
+        contacts: 'Contacts',
+        eventType: 'Type',
+        touchLog: 'Touch log',
+        noData: 'No data yet',
+        zoneChest: 'Chest',
+        zoneStomach: 'Stomach',
+        zoneUpperBack: 'Upper back',
+        zoneLowerBack: 'Lower back',
+        vestFront: 'Front',
+        vestBack: 'Back',
+        vestDebug: 'Vest Debug',
+        id: 'ID',
+        whileGrounded: 'Grounded',
+        whileSeated: 'Seated',
+        whileInStation: 'In station',
+        whileAfk: 'AFK',
+        madeBy: 'Made by',
+        statOscMsgs: 'OSC msgs:',
+        statHapticsSent: 'Haptics sent:',
+        motorsLabel: 'motors',
+        notConnected: 'Not connected',
+        error: 'Error',
+        networkError: 'Network error',
+      },
+    };
+
+    let lang = localStorage.getItem('tact-lang') || 'ru';
+
+    function t(key) {
+      return LANG[lang]?.[key] ?? LANG.ru[key] ?? LANG.en[key] ?? key;
+    }
+
+    function applyLang() {
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.dataset.i18n;
+        if (key && t(key)) el.textContent = t(key);
+      });
+      document.querySelectorAll('.lang-toggle button').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+      const ZONES = [
+        { key: 'chest', label: t('zoneChest') },
+        { key: 'stomach', label: t('zoneStomach') },
+        { key: 'upperBack', label: t('zoneUpperBack') },
+        { key: 'lowerBack', label: t('zoneLowerBack') },
+      ];
+      const WHILE = [
+        { key: 'grounded', label: t('whileGrounded') },
+        { key: 'seated', label: t('whileSeated') },
+        { key: 'inStation', label: t('whileInStation') },
+        { key: 'afk', label: t('whileAfk') },
+      ];
+      return { ZONES, WHILE };
+    }
+
+    document.getElementById('lang-ru').addEventListener('click', () => { lang = 'ru'; localStorage.setItem('tact-lang', lang); const { ZONES: z, WHILE: w } = applyLang(); initCheckboxes(z, w); if (lastState) { updateHero(lastState); updateUI(lastState); } });
+    document.getElementById('lang-ua').addEventListener('click', () => { lang = 'ua'; localStorage.setItem('tact-lang', lang); const { ZONES: z, WHILE: w } = applyLang(); initCheckboxes(z, w); if (lastState) { updateHero(lastState); updateUI(lastState); } });
+    document.getElementById('lang-en').addEventListener('click', () => { lang = 'en'; localStorage.setItem('tact-lang', lang); const { ZONES: z, WHILE: w } = applyLang(); initCheckboxes(z, w); if (lastState) { updateHero(lastState); updateUI(lastState); } });
+
+    let lastState = null;
+    let ZONES = [];
+    let WHILE = [];
+
+    function initCheckboxes(zones, whileOpts) {
+      ZONES = zones;
+      WHILE = whileOpts;
+      document.getElementById('zones-checkboxes').dataset.inited = '';
+      document.getElementById('while-checkboxes').dataset.inited = '';
+    }
+
+    const { ZONES: zones0, WHILE: while0 } = applyLang();
+    initCheckboxes(zones0, while0);
+
+    document.getElementById('toggle-advanced').addEventListener('click', () => {
+      const btn = document.getElementById('toggle-advanced');
+      const body = document.getElementById('advanced-body');
+      const collapsed = btn.dataset.collapsed === 'true';
+      btn.dataset.collapsed = !collapsed;
+      btn.classList.toggle('collapsed', !collapsed);
+      body.classList.toggle('collapsed', !collapsed);
+    });
+
+    document.getElementById('btn-test').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-test');
+      btn.disabled = true;
+      try {
+        const r = await fetch('/api/test-haptic', { method: 'POST' });
+        const j = await r.json();
+        if (j.ok) btn.textContent = t('btnTestOk');
+        else btn.textContent = j.error || t('error');
+      } catch (e) { btn.textContent = t('networkError'); }
+      setTimeout(() => {
+        btn.textContent = t('btnTestHaptic');
+        btn.disabled = !document.getElementById('bhaptics-dot').classList.contains('ok');
+      }, 1500);
+    });
+
+    function renderCheckboxes(containerId, items, stateObj, apiKey) {
+      const el = document.getElementById(containerId);
+      const it = items.length ? items : (containerId === 'zones-checkboxes' ? ZONES : WHILE);
+      if (!el.dataset.inited) {
+        el.dataset.inited = '1';
+        el.innerHTML = it.map(({ key, label }) => `<label><input type="checkbox" data-key="${key}" ${stateObj[key] ? 'checked' : ''}> ${label}</label>`).join('');
+        el.querySelectorAll('input').forEach((cb) => {
+          cb.addEventListener('change', () => {
+            const obj = {};
+            el.querySelectorAll('input').forEach((c) => { obj[c.dataset.key] = c.checked; });
+            fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [apiKey]: obj }) });
+          });
+        });
+      } else {
+        it.forEach(({ key }) => {
+          const cb = el.querySelector(`[data-key="${key}"]`);
+          if (cb) cb.checked = !!stateObj[key];
+        });
+      }
+    }
+
+    function updateHero(s) {
+      if (!s) return;
+      lastState = s;
+      const hero = document.getElementById('hero');
+      const title = document.getElementById('hero-title');
+      const sub = document.getElementById('hero-sub');
+      const steps = document.getElementById('hero-steps');
+      const btn = document.getElementById('btn-test');
+      const oscOk = s.osc?.listening;
+      const bhOk = s.bhaptics?.connected;
+      const vrcOk = s.vrchat?.connected;
+
+      hero.className = 'hero';
+      steps.style.display = 'none';
+      btn.textContent = t('btnTestHaptic');
+
+      if (!oscOk) {
+        hero.classList.add('error');
+        title.textContent = t('heroError');
+        sub.textContent = 'npm start';
+        steps.innerHTML = (LANG[lang]?.heroErrorSteps || LANG.ru.heroErrorSteps).map((x) => `<li>${x}</li>`).join('');
+        steps.style.display = 'block';
+      } else if (!bhOk) {
+        hero.classList.add('waiting');
+        title.textContent = t('heroWaiting');
+        sub.textContent = t('heroWaitingSteps')[0];
+        steps.innerHTML = (LANG[lang]?.heroWaitingSteps || LANG.ru.heroWaitingSteps).map((x) => `<li>${x}</li>`).join('');
+        steps.style.display = 'block';
+      } else if (!vrcOk) {
+        hero.classList.add('waiting');
+        title.textContent = t('heroReady');
+        sub.textContent = t('heroReadySub');
+        btn.disabled = false;
+      } else {
+        hero.classList.add('ready');
+        title.textContent = t('heroOk');
+        sub.textContent = `Avatar: ${s.avatar?.id || '—'} • OSC: ${s.stats?.messagesReceived ?? 0}`;
+        btn.disabled = false;
+      }
+    }
+
+    async function fetchState() {
+      try {
+        const r = await fetch('/api/state');
+        const s = await r.json();
+        updateUI(s);
+        updateHero(s);
+      } catch (e) { updateHero({ osc: { listening: false } }); }
+    }
+
+    function renderVestMotors(svgId, activeIndices, fading) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+      const r = 8;
+      const pad = 15;
+      const step = 22;
+      if (!svg.dataset.inited) {
+        svg.dataset.inited = '1';
+        for (let i = 0; i < 16; i++) {
+          const row = Math.floor(i / 4);
+          const col = i % 4;
+          const cx = pad + col * step + r;
+          const cy = pad + row * step + r;
+          const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          c.setAttribute('cx', cx);
+          c.setAttribute('cy', cy);
+          c.setAttribute('r', r);
+          c.setAttribute('fill', 'var(--border)');
+          c.setAttribute('data-index', i);
+          svg.appendChild(c);
+        }
+      }
+      svg.querySelectorAll('circle').forEach((c) => {
+        const idx = parseInt(c.dataset.index, 10);
+        const active = activeIndices.includes(idx);
+        c.classList.toggle('active', active && !fading);
+        c.classList.toggle('fade', active && fading);
+      });
+    }
+
+    function updateUI(s) {
+      const devInfo = s.deviceInfo || {};
+      const devLabel = document.getElementById('device-info-label');
+      if (devLabel) {
+        const name = devInfo.deviceName || '—';
+        const motors = devInfo.vestMotorCount ?? s.haptic?.vestMotorCount;
+        const motorsLabel = t('motorsLabel');
+        const notConnected = t('notConnected');
+        devLabel.textContent = motors ? `${name} (${motors} ${motorsLabel})` : (name || notConnected);
+      }
+      document.getElementById('osc-dot').className = 'status-dot ' + (s.osc?.listening ? 'ok' : 'err');
+      document.getElementById('osc-value').textContent = s.osc?.listening ? `:${s.osc.port}` : '—';
+      document.getElementById('bhaptics-dot').className = 'status-dot ' + (s.bhaptics?.connected ? 'ok' : 'warn');
+      document.getElementById('bhaptics-value').textContent = s.bhaptics?.connected ? 'Connected' : '—';
+      document.getElementById('vrchat-dot').className = 'status-dot ' + (s.vrchat?.connected ? 'ok' : 'warn');
+      document.getElementById('vrchat-value').textContent = s.vrchat?.connected ? 'Connected' : '—';
+      const di = s.deviceInfo || {};
+      const showBattery = di.battery != null;
+      document.getElementById('device-battery').textContent = showBattery ? (typeof di.battery === 'number' ? di.battery + '%' : String(di.battery)) : '—';
+      document.getElementById('avatar-osc-type').textContent = s.avatar?.oscType || '—';
+      document.getElementById('avatar-id').textContent = s.avatar?.id || '—';
+      const zones = s.allowZones || { chest: true, stomach: true, upperBack: true, lowerBack: true };
+      const allowWhile = s.allowWhile || { grounded: true, seated: true, inStation: true, afk: false };
+      renderCheckboxes('zones-checkboxes', ZONES, zones, 'allowZones');
+      renderCheckboxes('while-checkboxes', WHILE, allowWhile, 'allowWhile');
+      const c = s.contact || {};
+      const v = (c.value ?? 0) * 100;
+      const velVal = Math.max(c.velocity ?? 0, c.peakVelocity ?? 0);
+      const vel = Math.min(100, velVal * 50);
+      const int = s.intensity ?? 0;
+      document.getElementById('contact-value').textContent = v.toFixed(1);
+      document.getElementById('contact-value-bar').style.width = v + '%';
+      document.getElementById('contact-velocity').textContent = velVal.toFixed(2);
+      document.getElementById('contact-velocity-bar').style.width = vel + '%';
+      document.getElementById('intensity-value').textContent = int.toFixed(2);
+      document.getElementById('intensity-bar').style.width = Math.min(100, (int / 2) * 100) + '%';
+      document.getElementById('event-type').textContent = c.eventType || 'idle';
+      document.getElementById('stat-osc').textContent = s.stats?.messagesReceived ?? 0;
+      document.getElementById('stat-haptics').textContent = s.stats?.hapticsSent ?? 0;
+      const log = s.touchLog || [];
+      document.getElementById('touch-log').innerHTML = log.length
+        ? log.map((e) => {
+            const locale = { ru: 'ru', ua: 'uk', en: 'en' }[lang] || 'en';
+            const t = new Date(e.timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const vel = (e.velocity ?? 0).toFixed(2);
+            const loc = e.motorIndex != null ? ` #${e.motorIndex}` : '';
+            const paramShort = e.param ? e.param.replace(/^bHapticsOSC_/i, '') : '';
+            const param = paramShort ? ` (${paramShort})` : '';
+            return `<div style="padding:0.15rem 0;border-bottom:1px solid var(--border)">${t} — <strong>${e.zone}${loc}</strong>${param} intensity=${(e.intensity ?? 0).toFixed(2)} vel=${vel}</div>`;
+          }).join('')
+        : `<span style="color:var(--muted)">${t('noData')}</span>`;
+      const act = s.lastMotorActivations || {};
+      const indices = act.indices || [];
+      const actTs = act.timestamp || 0;
+      const age = Date.now() - actTs;
+      const fading = age > 400 && age < 1500;
+      const visible = age < 1500;
+      renderVestMotors('vest-front', visible ? indices.filter((i) => i < 16) : [], fading);
+      renderVestMotors('vest-back', visible ? indices.filter((i) => i >= 16).map((i) => i - 16) : [], fading);
+      const params = s.lastOscParams || {};
+      const entries = Object.entries(params).filter(([, v]) => v !== 0 && v !== false).slice(-12).reverse();
+      document.getElementById('osc-debug').innerHTML = entries.length
+        ? entries.map(([k, v]) => `<div>${k}: ${typeof v === 'number' ? v.toFixed(3) : v}</div>`).join('')
+        : `<span style="color:var(--muted)">${t('noData')}</span>`;
+    }
+
+    fetchState();
+    setInterval(fetchState, 250);
+  </script>
+</body>
+</html>

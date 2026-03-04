@@ -1,0 +1,22 @@
+{
+  "name": "tact-intensity-osc",
+  "version": "1.0.0",
+  "description": "VRChat OSC → bHaptics middleware with dynamic intensity adaptation",
+  "author": "1vs9 (https://1vs9.dev/)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test:osc": "node scripts/send-test-osc.js",
+    "kill-ports": "node scripts/kill-ports.js"
+  },
+  "keywords": ["vrchat", "osc", "bhaptics", "haptic", "tactsuit"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.0",
+    "node-osc": "^10.0.0",
+    "tact-js": "^2.0.4",
+    "ws": "^8.18.0"
+  }
+}
