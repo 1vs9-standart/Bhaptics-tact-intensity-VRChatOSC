@@ -71,34 +71,60 @@ async function main() {
 
   function zoneFromParam(p) {
     const lp = (p || '').toLowerCase();
-    if (/chest|front|vest_front/.test(lp)) return 'chest';
+    const frontMatch = lp.match(/vest_front[_-]?(\d+)|vestfront[_-]?(\d+)/i);
+    const backMatch = lp.match(/vest_back[_-]?(\d+)|back[_-]?(\d+)/i);
+    if (frontMatch) {
+      const raw = parseInt(frontMatch[1] || frontMatch[2] || '0', 10);
+      const idx0 = Math.max(0, raw - 1); // 1-20 -> 0-19
+      const row = Math.floor(Math.min(15, idx0) / 4); // 4x4 сетка
+      return row <= 1 ? 'chest' : 'stomach';
+    }
+    if (backMatch) {
+      const raw = parseInt(backMatch[1] || backMatch[2] || '0', 10);
+      const idx0 = Math.max(0, raw - 1);
+      const row = Math.floor(Math.min(15, idx0) / 4);
+      return row <= 1 ? 'upperBack' : 'lowerBack';
+    }
     if (/stomach|belly/.test(lp)) return 'stomach';
-    if (/upperback|upper/.test(lp)) return 'upperBack';
-    if (/lowerback|lower/.test(lp)) return 'lowerBack';
+    if (/upperback/.test(lp)) return 'upperBack';
+    if (/lowerback/.test(lp)) return 'lowerBack';
     if (/back|vest_back/.test(lp)) return 'upperBack';
+    if (/chest|front|vest_front/.test(lp)) return 'chest';
     return 'chest';
   }
 
   function canSendHaptic(activeParams) {
     const { allowZones, allowWhile, lastOscParams, stats } = dashboardState;
     const params = lastOscParams || {};
+
+    // 1) Ограничения по состоянию (Grounded / Seated / InStation / AFK)
     const hasStateParams =
       'IsGrounded' in params || 'InStation' in params || 'AFK' in params || 'Seated' in params;
-    if (!hasStateParams) return true;
-    const isGrounded = !!params.IsGrounded;
-    const inStation = !!params.InStation;
-    const afk = !!params.AFK;
-    const seated = !!params.Seated;
-    const stateOk =
-      (allowWhile.grounded && isGrounded) ||
-      (allowWhile.seated && seated) ||
-      (allowWhile.inStation && inStation) ||
-      (allowWhile.afk && afk);
-    if (stats.messagesReceived < 5) return true;
-    if (!stateOk) return false;
-    const toCheck = activeParams?.length ? activeParams.map((a) => a.param) : [dashboardState.contact?.lastParam].filter(Boolean);
+    if (hasStateParams && stats.messagesReceived >= 5) {
+      const isGrounded = !!params.IsGrounded;
+      const inStation = !!params.InStation;
+      const afk = !!params.AFK;
+      const seated = !!params.Seated;
+      const stateOk =
+        (allowWhile.grounded && isGrounded) ||
+        (allowWhile.seated && seated) ||
+        (allowWhile.inStation && inStation) ||
+        (allowWhile.afk && afk);
+      if (!stateOk) return false;
+    }
+
+    // 2) Ограничения по зонам (Chest / Stomach / UpperBack / LowerBack)
+    const toCheck = activeParams?.length
+      ? activeParams.map((a) => a.param)
+      : [dashboardState.contact?.lastParam].filter(Boolean);
     if (toCheck.length === 0) return false;
-    return toCheck.some((param) => allowZones[zoneFromParam(param)] === true);
+
+    // Если зона явно выключена (false) — блочим, иначе считаем включённой по умолчанию.
+    return toCheck.some((param) => {
+      const zoneKey = zoneFromParam(param);
+      const v = allowZones[zoneKey];
+      return v !== false;
+    });
   }
 
   const { stop, hapticsBridge } = startDashboard(config.ui?.port ?? 1969);
@@ -121,7 +147,7 @@ async function main() {
       }
 
       const snapshot = stateAnalyzer.update(msg);
-      const { intensity, emit } = intensityEngine.process(snapshot);
+      const { intensity, emit, touchType } = intensityEngine.process(snapshot);
 
       dashboardState.contact = { ...snapshot };
       dashboardState.intensity = intensity;
@@ -153,11 +179,15 @@ async function main() {
                 return arr.length ? `${z}#${arr.join(',')}` : z;
               })
               .join(' | ');
-            if (summary !== lastLogSummary || now - lastLogTime > 300) {
+            if (config.debug && (summary !== lastLogSummary || now - lastLogTime > 300)) {
               lastLogSummary = summary;
               lastLogTime = now;
               const params = activeParams.map((a) => a.param).join(', ');
-              console.log(`[Touch] ${summary} intensity=${intensity.toFixed(2)} vel=${vel.toFixed(2)} | params: ${params}`);
+              console.log(
+                `[Touch] ${summary} type=${touchType || 'unknown'} intensity=${intensity.toFixed(
+                  2
+                )} vel=${vel.toFixed(2)} | params: ${params}`
+              );
             }
             hapticsBridge.sendHaptic(intensity, config, null, null, motorValues);
             dashboardState.stats.hapticsSent++;
@@ -170,8 +200,14 @@ async function main() {
           const entry = { zone, param: lastParam, motorIndex: rawMotorIndex ?? motorIndex, timestamp: now, intensity, velocity: vel };
           dashboardState.touchLog.unshift(entry);
           if (dashboardState.touchLog.length > 50) dashboardState.touchLog.splice(50);
-          const loc = motorIndex != null ? ` motor #${motorIndex}` : '';
-          console.log(`[Touch] ${zone}${loc} — ${lastParam || '—'} | intensity=${intensity.toFixed(2)} vel=${vel.toFixed(2)}`);
+          if (config.debug) {
+            const loc = motorIndex != null ? ` motor #${motorIndex}` : '';
+            console.log(
+              `[Touch] ${zone}${loc} — ${lastParam || '—'} | type=${touchType || 'unknown'} intensity=${intensity.toFixed(
+                2
+              )} vel=${vel.toFixed(2)}`
+            );
+          }
           hapticsBridge.sendHaptic(intensity, config, zone, motorIndex);
           dashboardState.stats.hapticsSent++;
           dashboardState.lastHaptic = now;

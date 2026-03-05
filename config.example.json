@@ -1,13 +1,14 @@
 {
   "_comment": "Copy to config.json and set bhaptics.appId, apiKey.",
   "ui": {
-    "port": 1969
+  "port": 1969
   },
   "osc": {
     "port": 9001,
     "host": "127.0.0.1",
     "autoFreePorts": true
   },
+  "debug": false,
   "bhaptics": {
     "appId": "{your appId}",
     "apiKey": "{your apiKey}",

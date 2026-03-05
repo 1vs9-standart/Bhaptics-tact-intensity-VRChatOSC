@@ -17,20 +17,30 @@ export function createIntensityEngine(config) {
 
   let lastEmit = 0;
   let ema = 0;
+  let lastType = 'idle';
 
   function process(snapshot) {
-    const { velocity, duration, contactActive } = snapshot;
+    const { velocity, duration, contactActive, peakVelocity, value } = snapshot;
     const now = Date.now();
 
     let intensity = 0;
-    const isImpact = velocity > impactThreshold;
+    let touchType = 'idle';
+
+    // Impact — короткий, быстрый "удар", опираемся на peakVelocity.
+    const v = Math.max(velocity, peakVelocity);
+    const isImpact = v > impactThreshold && duration < 0.25;
 
     if (isImpact) {
-      intensity = minIntensity + (maxIntensity - minIntensity) *
-        Math.min(1, (velocity - velocityMin) / (velocityMax - velocityMin));
+      const normVel = Math.min(1, (v - velocityMin) / (velocityMax - velocityMin));
+      intensity = minIntensity + (maxIntensity - minIntensity) * Math.max(0, normVel);
+      touchType = 'impact';
     } else if (contactActive && duration > 0) {
+      // Smooth — чем дольше держат, тем сильнее, но не скачкообразно.
       const t = Math.min(1, (duration * 1000) / longContactMs);
-      intensity = durationMin + (durationMax - durationMin) * t;
+      const base = durationMin + (durationMax - durationMin) * t;
+      // Чуть усиливаем по текущему значению контакта (value 0–1).
+      intensity = base * (0.7 + 0.3 * Math.max(0, Math.min(1, value ?? 0)));
+      touchType = 'smooth';
     }
 
     intensity = Math.max(minIntensity, Math.min(maxIntensity, intensity));
@@ -41,12 +51,17 @@ export function createIntensityEngine(config) {
     }
 
     const sinceLast = now - lastEmit;
-    const cooldown = isImpact ? cooldownMs : sustainCooldownMs;
+    const cooldown = touchType === 'impact' ? cooldownMs : sustainCooldownMs;
     const emit = intensity > (minIntensity || 0.01) && sinceLast >= cooldown;
 
-    if (emit) lastEmit = now;
+    if (emit) {
+      lastEmit = now;
+      lastType = touchType;
+    } else {
+      touchType = lastType;
+    }
 
-    return { intensity, emit };
+    return { intensity, emit, touchType };
   }
 
   return { process };

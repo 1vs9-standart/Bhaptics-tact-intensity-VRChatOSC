@@ -75,7 +75,11 @@
     .lang-toggle button { padding: 0.25rem 0.5rem; font-size: 0.75rem; background: var(--border); border: none; border-radius: 6px; color: var(--muted); cursor: pointer; }
     .lang-toggle button:hover { color: var(--text); }
     .lang-toggle button.active { background: var(--accent); color: var(--bg); }
-    .zone-touched { background: rgba(88, 166, 255, 0.15); border-radius: 8px; box-shadow: 0 0 0 1px var(--accent); }
+    .zone-label { padding: 0.15rem 0.45rem; border-radius: 999px; transition: background 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, text-shadow 0.2s ease; }
+    .zone-touched { background: rgba(88, 166, 255, 0.12); box-shadow: 0 0 8px rgba(88, 166, 255, 0.55); color: var(--accent); text-shadow: 0 0 8px rgba(88, 166, 255, 0.9); }
+    .inline-toggles { display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; font-size:0.75rem; color:var(--muted); margin-top:0.5rem; }
+    .inline-toggles label { display:flex; align-items:center; gap:0.3rem; cursor:pointer; }
+    .inline-toggles input { accent-color: var(--accent); }
   </style>
   <script type="module" src="/haptics-client.js"></script>
 </head>
@@ -164,6 +168,10 @@
             <span class="status-value" id="vrchat-value">—</span>
           </div>
         </div>
+        <div class="inline-toggles">
+          <label><input type="checkbox" id="toggle-touch-log-cb"> <span data-i18n="toggleTouchLog">—</span></label>
+          <label><input type="checkbox" id="toggle-osc-debug-cb"> <span data-i18n="toggleOscDebug">—</span></label>
+        </div>
         <h2 style="margin-top:1rem" data-i18n="avatar">—</h2>
         <div class="status-row">
           <span class="status-label" data-i18n="oscType">—</span>
@@ -184,14 +192,14 @@
             <svg id="vest-back" viewBox="0 0 100 120" width="100" height="120"></svg>
           </div>
         </div>
-        <h2 style="margin-top:1rem" data-i18n="touchLog">—</h2>
+        <h2 style="margin-top:1rem" data-i18n="touchLog" id="touch-log-title">—</h2>
         <div id="touch-log" style="font-family:JetBrains Mono;font-size:0.7rem;max-height:200px;overflow-y:auto"></div>
         <div class="stats" style="margin-top:0.75rem">
           <span class="stat"><span data-i18n="statOscMsgs">—</span> <strong id="stat-osc">0</strong></span>
           <span class="stat"><span data-i18n="statHapticsSent">—</span> <strong id="stat-haptics">0</strong></span>
           <span class="stat live">● live</span>
         </div>
-        <h2 style="margin-top:1rem">OSC Debug</h2>
+        <h2 style="margin-top:1rem" id="osc-debug-title">OSC Debug</h2>
         <div id="osc-debug" style="font-family:JetBrains Mono;font-size:0.65rem;max-height:80px;overflow-y:auto"></div>
       </div>
     </div>
@@ -225,6 +233,8 @@
         contacts: 'Контакты',
         eventType: 'Тип',
         touchLog: 'Где коснулись',
+        toggleTouchLog: 'Показывать Touch log',
+        toggleOscDebug: 'Показывать OSC Debug',
         noData: 'Пока нет',
         zoneChest: 'Грудь',
         zoneStomach: 'Живот',
@@ -268,6 +278,8 @@
         contacts: 'Контакти',
         eventType: 'Тип',
         touchLog: 'Де торкнулись',
+        toggleTouchLog: 'Показувати Touch log',
+        toggleOscDebug: 'Показувати OSC Debug',
         noData: 'Поки немає',
         zoneChest: 'Груди',
         zoneStomach: 'Живіт',
@@ -311,6 +323,8 @@
         contacts: 'Contacts',
         eventType: 'Type',
         touchLog: 'Touch log',
+        toggleTouchLog: 'Show Touch log',
+        toggleOscDebug: 'Show OSC Debug',
         noData: 'No data yet',
         zoneChest: 'Chest',
         zoneStomach: 'Stomach',
@@ -335,6 +349,8 @@
     };
 
     let lang = localStorage.getItem('tact-lang') || 'ru';
+    let showTouchLog = localStorage.getItem('tact-show-touch-log') !== '0';
+    let showOscDebug = localStorage.getItem('tact-show-osc-debug') !== '0';
 
     function t(key) {
       return LANG[lang]?.[key] ?? LANG.ru[key] ?? LANG.en[key] ?? key;
@@ -380,6 +396,41 @@
 
     const { ZONES: zones0, WHILE: while0 } = applyLang();
     initCheckboxes(zones0, while0);
+
+    function applyLogToggles() {
+      const tlTitle = document.getElementById('touch-log-title');
+      const tl = document.getElementById('touch-log');
+      const oscTitle = document.getElementById('osc-debug-title');
+      const osc = document.getElementById('osc-debug');
+      const tlCb = document.getElementById('toggle-touch-log-cb');
+      const oscCb = document.getElementById('toggle-osc-debug-cb');
+      if (tlCb) tlCb.checked = showTouchLog;
+      if (oscCb) oscCb.checked = showOscDebug;
+      if (tlTitle) tlTitle.style.display = showTouchLog ? '' : 'none';
+      if (tl) tl.style.display = showTouchLog ? '' : 'none';
+      if (oscTitle) oscTitle.style.display = showOscDebug ? '' : 'none';
+      if (osc) osc.style.display = showOscDebug ? '' : 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const tlCb = document.getElementById('toggle-touch-log-cb');
+      const oscCb = document.getElementById('toggle-osc-debug-cb');
+      if (tlCb) {
+        tlCb.addEventListener('change', () => {
+          showTouchLog = !!tlCb.checked;
+          localStorage.setItem('tact-show-touch-log', showTouchLog ? '1' : '0');
+          applyLogToggles();
+        });
+      }
+      if (oscCb) {
+        oscCb.addEventListener('change', () => {
+          showOscDebug = !!oscCb.checked;
+          localStorage.setItem('tact-show-osc-debug', showOscDebug ? '1' : '0');
+          applyLogToggles();
+        });
+      }
+      applyLogToggles();
+    });
 
     document.getElementById('toggle-advanced').addEventListener('click', () => {
       const btn = document.getElementById('toggle-advanced');
@@ -533,11 +584,25 @@
       renderCheckboxes('while-checkboxes', WHILE, allowWhile, 'allowWhile');
       function zoneFromParam(p) {
         const lp = (p || '').toLowerCase();
-        if (/chest|front|vest_front/.test(lp)) return 'chest';
+        const frontMatch = lp.match(/vest_front[_-]?(\d+)|vestfront[_-]?(\d+)/i);
+        const backMatch = lp.match(/vest_back[_-]?(\d+)|back[_-]?(\d+)/i);
+        if (frontMatch) {
+          const raw = parseInt(frontMatch[1] || frontMatch[2] || '0', 10);
+          const idx0 = Math.max(0, raw - 1); // 1-20 -> 0-19
+          const row = Math.floor(Math.min(15, idx0) / 4); // 4x4 grid
+          return row <= 1 ? 'chest' : 'stomach';
+        }
+        if (backMatch) {
+          const raw = parseInt(backMatch[1] || backMatch[2] || '0', 10);
+          const idx0 = Math.max(0, raw - 1);
+          const row = Math.floor(Math.min(15, idx0) / 4);
+          return row <= 1 ? 'upperBack' : 'lowerBack';
+        }
         if (/stomach|belly/.test(lp)) return 'stomach';
-        if (/upperback|upper/.test(lp)) return 'upperBack';
-        if (/lowerback|lower/.test(lp)) return 'lowerBack';
+        if (/upperback/.test(lp)) return 'upperBack';
+        if (/lowerback/.test(lp)) return 'lowerBack';
         if (/back|vest_back/.test(lp)) return 'upperBack';
+        if (/chest|front|vest_front/.test(lp)) return 'chest';
         return 'chest';
       }
       const c = s.contact || {};
@@ -563,17 +628,19 @@
       document.getElementById('stat-osc').textContent = s.stats?.messagesReceived ?? 0;
       document.getElementById('stat-haptics').textContent = s.stats?.hapticsSent ?? 0;
       const log = s.touchLog || [];
-      document.getElementById('touch-log').innerHTML = log.length
-        ? log.map((e) => {
-            const locale = { ru: 'ru', ua: 'uk', en: 'en' }[lang] || 'en';
-            const t = new Date(e.timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const vel = (e.velocity ?? 0).toFixed(2);
-            const loc = e.motorIndex != null ? ` #${e.motorIndex}` : '';
-            const paramShort = e.param ? e.param.replace(/^bHapticsOSC_/i, '') : '';
-            const param = paramShort ? ` (${paramShort})` : '';
-            return `<div style="padding:0.15rem 0;border-bottom:1px solid var(--border)">${t} — <strong>${e.zone}${loc}</strong>${param} intensity=${(e.intensity ?? 0).toFixed(2)} vel=${vel}</div>`;
-          }).join('')
-        : `<span style="color:var(--muted)">${t('noData')}</span>`;
+      if (showTouchLog) {
+        document.getElementById('touch-log').innerHTML = log.length
+          ? log.map((e) => {
+              const locale = { ru: 'ru', ua: 'uk', en: 'en' }[lang] || 'en';
+              const t = new Date(e.timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+              const vel = (e.velocity ?? 0).toFixed(2);
+              const loc = e.motorIndex != null ? ` #${e.motorIndex}` : '';
+              const paramShort = e.param ? e.param.replace(/^bHapticsOSC_/i, '') : '';
+              const param = paramShort ? ` (${paramShort})` : '';
+              return `<div style="padding:0.15rem 0;border-bottom:1px solid var(--border)">${t} — <strong>${e.zone}${loc}</strong>${param} intensity=${(e.intensity ?? 0).toFixed(2)} vel=${vel}</div>`;
+            }).join('')
+          : `<span style="color:var(--muted)">${t('noData')}</span>`;
+      }
       const act = s.lastMotorActivations || {};
       const indices = act.indices || [];
       const actTs = act.timestamp || 0;
@@ -582,15 +649,17 @@
       const visible = age < 1500;
       renderVestMotors('vest-front', visible ? indices.filter((i) => i < 16) : [], fading);
       renderVestMotors('vest-back', visible ? indices.filter((i) => i >= 16).map((i) => i - 16) : [], fading);
-      const params = s.lastOscParams || {};
-      const entries = Object.entries(params).filter(([, v]) => v !== 0 && v !== false).slice(-12).reverse();
-      document.getElementById('osc-debug').innerHTML = entries.length
-        ? entries.map(([k, v]) => `<div>${k}: ${typeof v === 'number' ? v.toFixed(3) : v}</div>`).join('')
-        : `<span style="color:var(--muted)">${t('noData')}</span>`;
+      if (showOscDebug) {
+        const params = s.lastOscParams || {};
+        const entries = Object.entries(params).filter(([, v]) => v !== 0 && v !== false).slice(-12).reverse();
+        document.getElementById('osc-debug').innerHTML = entries.length
+          ? entries.map(([k, v]) => `<div>${k}: ${typeof v === 'number' ? v.toFixed(3) : v}</div>`).join('')
+          : `<span style="color:var(--muted)">${t('noData')}</span>`;
+      }
     }
 
     fetchState();
-    setInterval(fetchState, 250);
+    setInterval(fetchState, 333);
   </script>
 </body>
 </html>
